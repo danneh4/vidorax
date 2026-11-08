@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090d18">
+<title>VidoraX — Video Downloader</title>
+<style>
+:root{color-scheme:dark;--bg:#090d18;--panel:#121a2b;--muted:#9aa8c1;--line:#26334b;--blue:#6d8cff;--cyan:#48d7d0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -15%,#1b2b52 0,transparent 48%),var(--bg);color:#f4f7ff;font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+.wrap{max-width:940px;margin:auto;padding:28px 20px 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:70px}
+.logo{font-size:1.45rem;font-weight:850;letter-spacing:-.06em}.logo span{color:var(--cyan)}.pill{border:1px solid var(--line);color:#c4cee1;border-radius:999px;padding:7px 12px;font-size:.8rem}
+.hero{text-align:center;max-width:720px;margin:0 auto 34px}.eyebrow{color:var(--cyan);font-weight:700;text-transform:uppercase;letter-spacing:.16em;font-size:.76rem}
+h1{font-size:clamp(2.4rem,7vw,4.4rem);line-height:1.02;letter-spacing:-.06em;margin:14px 0}.sub{color:var(--muted);font-size:1.05rem}
+.panel{background:linear-gradient(145deg,#151f34,#101727);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 22px 70px #0005}
+label{display:block;font-size:.9rem;font-weight:650;margin-bottom:9px}.urlrow{display:flex;gap:10px}
+input[type=url]{min-width:0;flex:1;background:#0a1120;border:1px solid #34425e;border-radius:12px;color:white;padding:15px;font:inherit;outline:none}
+input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #6d8cff25}
+button{border:0;border-radius:12px;background:linear-gradient(110deg,#6d8cff,#5269e8);color:white;padding:0 21px;font-weight:750;font:inherit;cursor:pointer}
+button:hover{filter:brightness(1.1)}button:disabled{opacity:.55;cursor:wait}
+.help{color:var(--muted);font-size:.82rem;margin:10px 0 0}.status{margin-top:17px;padding:13px 15px;border-radius:12px;background:#0b1322;border:1px solid var(--line);color:#dce6ff;display:none;overflow-wrap:anywhere}
+.status.error{border-color:#85434d;color:#ffc5c9}.status.ok{border-color:#28796e;color:#b9fff0}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}.secondary{background:#202c43;border:1px solid #3a4b6b;padding:12px 16px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}.feature{border:1px solid var(--line);border-radius:15px;padding:16px;background:#0d1525}.feature b{display:block;margin-bottom:5px}.feature p{color:var(--muted);font-size:.86rem;margin:0}
+.note{margin:22px 0 0;color:#aab7cd;font-size:.82rem}.note strong{color:#e8efff}
+footer{text-align:center;color:#72809a;font-size:.8rem;margin-top:36px}
+@media(max-width:640px){.top{margin-bottom:48px}.urlrow{flex-direction:column}.urlrow button{padding:14px}.grid{grid-template-columns:1fr}.panel{padding:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="logo">Vidora<span>X</span></div><div class="pill">Free · Browser-based</div></header>
+<main>
+<section class="hero">
+<div class="eyebrow">Save videos you’re allowed to download</div>
+<h1>Your videos.<br><span style="background:linear-gradient(90deg,#8ea7ff,#55e2d7);-webkit-background-clip:text;background-clip:text;color:transparent">Your way.</span></h1>
+<p class="sub">Paste a direct video file link or choose a video from your device. No account required.</p>
+</section>
+<section class="panel" aria-label="Video downloader">
+<label for="videoUrl">Direct video URL</label>
+<div class="urlrow">
+<input id="videoUrl" type="url" placeholder="https://example.com/video.mp4" autocomplete="url">
+<button id="downloadBtn">Download video</button>
+</div>
+<p class="help">Works with direct media-file links (such as MP4 or WebM) when the host permits browser access. A page link from a streaming platform is not a direct video file.</p>
+<div id="status" class="status" role="status" aria-live="polite"></div>
+<div class="actions">
+<label class="secondary" for="localFile" style="margin:0;cursor:pointer;border-radius:12px">Choose a video from this device</label>
+<input id="localFile" type="file" accept="video/*" hidden>
+</div>
+<p class="note"><strong>Platform and adult-site note:</strong> The same rules apply to all sources, including 18+ sites. This tool does not bypass DRM, paywalls, logins, age checks, download restrictions or other access controls. Only save content you own or have permission to download, and follow the source site's terms and applicable law.</p>
+</section>
+<section class="grid">
+<div class="feature"><b>Simple</b><p>Paste a supported direct file link and start a download.</p></div>
+<div class="feature"><b>Private by design</b><p>This static page does not upload your video to a VidoraX server.</p></div>
+<div class="feature"><b>Mobile friendly</b><p>Use the same page on phones, tablets and desktop browsers.</p></div>
+</section>
+</main>
+<footer>© <span id="year"></span> VidoraX. Use responsibly.</footer>
+</div>
+<script>
+const urlInput=document.getElementById('videoUrl');
+const button=document.getElementById('downloadBtn');
+const statusBox=document.getElementById('status');
+const localFile=document.getElementById('localFile');
+document.getElementById('year').textContent=new Date().getFullYear();
+function show(message,type=''){statusBox.textContent=message;statusBox.className='status '+type;statusBox.style.display='block'}
+function safeFilename(value){return (value||'vidorax-video').replace(/[^\w.-]+/g,'_').slice(0,100)||'vidorax-video'}
+button.addEventListener('click',async()=>{
+  let url;
+  try{url=new URL(urlInput.value.trim())}catch{show('Enter a valid video file URL beginning with https:// or http://.','error');return}
+  if(!['http:','https:'].includes(url.protocol)){show('Only http and https links are supported.','error');return}
+  button.disabled=true;button.textContent='Preparing…';
+  show('Trying to retrieve the video. The source must allow browser access (CORS).');
+  try{
+    const response=await fetch(url.href,{mode:'cors'});
+    if(!response.ok)throw new Error('The source returned HTTP '+response.status+'.');
+    const type=response.headers.get('content-type')||'';
+    if(!type.startsWith('video/')&&!/\.(mp4|webm|mov|m4v|ogv)(?:$|\?)/i.test(url.pathname+url.search))
+      throw new Error('This does not appear to be a direct video file URL.');
+    const blob=await response.blob();
+    if(!blob.size)throw new Error('The downloaded file was empty.');
+    const objectUrl=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=objectUrl;
+    const ext=(url.pathname.match(/\.(mp4|webm|mov|m4v|ogv)$/i)||[])[1]||'mp4';
+    a.download=safeFilename(decodeURIComponent(url.pathname.split('/').pop().split('.')[0]))+'.'+ext.toLowerCase();
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
+    show('Download started. If it did not begin, the browser or source may restrict downloads.','ok');
+  }catch(error){
+    show((error.message||'Unable to download this URL.')+' Try a direct MP4/WebM file hosted with CORS enabled, or use the source site’s official download option. VidoraX cannot fetch ordinary watch-page links or bypass restrictions.','error');
+  }finally{button.disabled=false;button.textContent='Download video'}
+});
+localFile.addEventListener('change',()=>{
+  const file=localFile.files&&localFile.files[0];if(!file)return;
+  const objectUrl=URL.createObjectURL(file);const a=document.createElement('a');a.href=objectUrl;a.download=safeFilename(file.name);document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);show('Your selected local file is ready.','ok');localFile.value='';
+});
+urlInput.addEventListener('keydown',e=>{if(e.key==='Enter')button.click()});
+</script>
+</body>
+</html>
